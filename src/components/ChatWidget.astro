@@ -1,0 +1,189 @@
+---
+/**
+ * Floating chat button (bottom right, every page). Opens a small panel with
+ * direct links to Zalo, Messenger, WhatsApp and email.
+ * Docs: docs/features/chat-widget.md
+ */
+import Icon from './Icon.astro';
+import { useT } from '../i18n';
+import { LINKS } from '../config/site';
+import type { Locale } from '../lib/paths';
+
+interface Props {
+  lang: Locale;
+}
+const { lang } = Astro.props;
+const t = useT(lang);
+const apps = [
+  { label: 'Zalo', href: LINKS.zalo, id: 'zalo' },
+  { label: 'Messenger', href: LINKS.messenger, id: 'messenger' },
+  { label: 'WhatsApp', href: LINKS.whatsapp, id: 'whatsapp' },
+  { label: 'Email', href: LINKS.email, id: 'email' },
+];
+---
+
+<div class="chat" data-chat>
+  <div class="panel" id="chat-panel" role="dialog" aria-label={t.chat.title} hidden>
+    <p class="title">{t.chat.title}</p>
+    <p class="sub">{t.chat.sub}</p>
+    <ul>
+      {
+        apps.map((app) => (
+          <li>
+            <a
+              class="app"
+              href={app.href}
+              data-chat-app={app.id}
+              target={app.id === 'email' ? undefined : '_blank'}
+              rel={app.id === 'email' ? undefined : 'noopener noreferrer'}
+            >
+              <span>{app.label}</span>
+              <Icon name="arrow-right" size={18} strokeWidth={2} />
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+
+  <button
+    type="button"
+    class="fab"
+    id="chat-toggle"
+    aria-controls="chat-panel"
+    aria-expanded="false"
+    aria-label={t.chat.open}
+    data-label-open={t.chat.open}
+    data-label-close={t.chat.close}
+  >
+    <span class="icon-open"><Icon name="chat-dots" size={26} strokeWidth={2} /></span>
+    <span class="icon-close"><Icon name="close" size={24} strokeWidth={2.2} /></span>
+  </button>
+</div>
+
+<style>
+  .chat {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 12px;
+  }
+  .panel {
+    width: min(320px, calc(100vw - 48px));
+    background: var(--surface);
+    border: 1px solid var(--border-2);
+    border-radius: 18px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+  }
+  .panel[hidden] {
+    display: none;
+  }
+  .title {
+    font-size: 17px;
+    font-weight: 700;
+  }
+  .sub {
+    margin-top: 4px;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-2);
+  }
+  ul {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 14px 0 0;
+    padding: 0;
+    list-style: none;
+  }
+  .app {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 48px;
+    padding: 0 16px;
+    border-radius: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 15px;
+    color: var(--text);
+  }
+  .app :global(svg) {
+    color: var(--ink);
+  }
+  .app:hover {
+    border-color: var(--ink);
+  }
+  .fab {
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: 0;
+    background: var(--accent);
+    color: var(--on-accent);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: var(--shadow);
+    transition: filter 0.15s ease-out, transform 0.15s ease-out;
+  }
+  .fab:hover {
+    filter: brightness(1.07);
+  }
+  .fab:active {
+    transform: translateY(1px);
+  }
+  .icon-close {
+    display: none;
+  }
+  .fab[aria-expanded='true'] .icon-open {
+    display: none;
+  }
+  .fab[aria-expanded='true'] .icon-close {
+    display: inline-flex;
+  }
+</style>
+
+<script>
+  const toggle = document.getElementById('chat-toggle');
+  const panel = document.getElementById('chat-panel');
+
+  function setOpen(open: boolean) {
+    if (!toggle || !panel) return;
+    panel.hidden = !open;
+    toggle.setAttribute('aria-expanded', String(open));
+    toggle.setAttribute('aria-label', (open ? toggle.dataset.labelClose : toggle.dataset.labelOpen) ?? '');
+  }
+
+  toggle?.addEventListener('click', () => setOpen(panel ? panel.hidden === true : true));
+
+  // Any element with data-open-chat (e.g. the hero "Message us" button) opens the panel.
+  document.querySelectorAll('[data-open-chat]').forEach((el) =>
+    el.addEventListener('click', (e) => {
+      e.preventDefault();
+      setOpen(true);
+      panel?.querySelector<HTMLAnchorElement>('a')?.focus();
+    }),
+  );
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && panel && !panel.hidden) {
+      setOpen(false);
+      toggle?.focus();
+    }
+  });
+
+  document.addEventListener('click', (e) => {
+    const target = e.target as Node;
+    if (panel && !panel.hidden && !panel.contains(target) && !toggle?.contains(target) && !(target instanceof Element && target.closest('[data-open-chat]'))) {
+      setOpen(false);
+    }
+  });
+</script>

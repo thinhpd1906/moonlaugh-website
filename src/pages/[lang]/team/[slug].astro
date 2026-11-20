@@ -1,0 +1,206 @@
+---
+/** One team member's profile page. Docs: docs/features/team-profiles.md */
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import Avatar from '../../../components/Avatar.astro';
+import Icon from '../../../components/Icon.astro';
+import { useT } from '../../../i18n';
+import { LOCALES, localePath, type Locale } from '../../../lib/paths';
+import { publishedMembers, type TeamMember } from '../../../data/team';
+
+export function getStaticPaths() {
+  return LOCALES.flatMap((lang) =>
+    publishedMembers().map((member) => ({ params: { lang, slug: member.slug }, props: { member } })),
+  );
+}
+
+interface Props {
+  member: TeamMember;
+}
+const { member } = Astro.props;
+const lang = Astro.params.lang as Locale;
+const t = useT(lang);
+const copy = member.copy[lang];
+const links = [
+  { label: 'LinkedIn', href: member.links.linkedin },
+  { label: 'GitHub', href: member.links.github },
+].filter((l): l is { label: string; href: string } => Boolean(l.href));
+---
+
+<BaseLayout lang={lang} title={`${copy.name} · Moonlaugh`} description={copy.bio}>
+  <section class="container profile">
+    <a class="text-link back" href={localePath(lang, 'team')}><Icon name="arrow-left" size={18} strokeWidth={2} />{t.more.back}</a>
+
+    <div class="layout">
+      <aside class="card side">
+        <Avatar member={member} size={120} />
+        <div class="who">
+          <h1>{copy.name}</h1>
+          <p class="role">{copy.role}</p>
+        </div>
+        {
+          links.length > 0 && (
+            <div class="links">
+              <h2 class="label">{t.team.links}</h2>
+              {links.map((l) => (
+                <a class="ext" href={l.href} target="_blank" rel="noopener noreferrer" data-profile-link={l.label.toLowerCase()}>
+                  <span>{l.label}</span>
+                  <Icon name="arrow-up-right" size={18} strokeWidth={2} />
+                  <span class="visually-hidden">{t.common.opensNewTab}</span>
+                </a>
+              ))}
+            </div>
+          )
+        }
+        <a class="btn btn-primary" href={localePath(lang, 'contact')}>{t.team.workWithUs}</a>
+      </aside>
+
+      <div class="main">
+        <section>
+          <h2>{t.team.about}</h2>
+          <p class="about">{copy.about}</p>
+        </section>
+        {
+          copy.skills.length > 0 && (
+            <section>
+              <h2>{t.team.skills}</h2>
+              <ul class="skills">
+                {copy.skills.map((s) => (
+                  <li class="pill">{s}</li>
+                ))}
+              </ul>
+            </section>
+          )
+        }
+        {
+          copy.experience.length > 0 && (
+            <section>
+              <h2>{t.team.experience}</h2>
+              <ul class="exp">
+                {copy.experience.map((e) => (
+                  <li>{e}</li>
+                ))}
+              </ul>
+            </section>
+          )
+        }
+      </div>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .profile {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding-block: 48px 96px;
+  }
+  .back {
+    align-self: flex-start;
+    color: var(--text-2);
+  }
+  .layout {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 32px;
+    align-items: start;
+  }
+  .side {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 32px;
+    border-radius: 20px;
+  }
+  .who {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  h1 {
+    font-size: 30px;
+    letter-spacing: -0.02em;
+  }
+  .role {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .links {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-2);
+  }
+  .ext {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 48px;
+    padding: 0 16px;
+    border-radius: 12px;
+    background: var(--bg);
+    border: 1px solid var(--border);
+    font-weight: 600;
+    font-size: 15px;
+  }
+  .ext :global(svg) {
+    color: var(--ink);
+  }
+  .ext:hover {
+    border-color: var(--ink);
+  }
+  .main {
+    display: flex;
+    flex-direction: column;
+    gap: 36px;
+  }
+  .main section {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .main h2 {
+    font-size: 22px;
+  }
+  .about {
+    font-size: 17px;
+    line-height: 1.7;
+    color: var(--body);
+    max-width: 68ch;
+  }
+  .skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .exp {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .exp li {
+    padding: 16px 0 16px 24px;
+    border-bottom: 1px solid var(--line);
+    font-size: 16px;
+    line-height: 1.5;
+    position: relative;
+  }
+  .exp li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 24px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+  }
+</style>

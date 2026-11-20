@@ -1,0 +1,37 @@
+---
+/** Member photo, or an initial in an accent circle until a photo is added. */
+import type { TeamMember } from '../data/team';
+
+interface Props {
+  member: TeamMember;
+  size?: number;
+}
+const { member, size = 72 } = Astro.props;
+const name = member.copy.en.name;
+---
+
+{
+  member.photo ? (
+    <img class="avatar" src={member.photo} alt={name} width={size} height={size} style={`width:${size}px;height:${size}px`} />
+  ) : (
+    <span class="avatar initial" aria-hidden="true" style={`width:${size}px;height:${size}px;font-size:${Math.round(size * 0.4)}px`}>
+      {member.initial}
+    </span>
+  )
+}
+
+<style>
+  .avatar {
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .initial {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+    color: var(--on-accent);
+    font-weight: 700;
+  }
+</style>

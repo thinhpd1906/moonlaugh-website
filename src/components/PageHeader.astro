@@ -1,0 +1,25 @@
+---
+/** Title block at the top of inner pages (Services, How we work, Team). */
+interface Props {
+  title: string;
+  sub?: string;
+}
+const { title, sub } = Astro.props;
+---
+
+<section class="container page-header">
+  <h1 class="h1">{title}</h1>
+  {sub && <p class="lead">{sub}</p>}
+</section>
+
+<style>
+  .page-header {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding-block: 80px 40px;
+  }
+  .h1 {
+    max-width: 820px;
+  }
+</style>

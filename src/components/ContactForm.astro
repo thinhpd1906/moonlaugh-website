@@ -1,0 +1,248 @@
+---
+/**
+ * Contact form. Sends to Web3Forms, which emails the message to the address
+ * linked to PUBLIC_WEB3FORMS_KEY. Logic lives in src/lib/contact.ts.
+ * Docs: docs/features/contact-form.md
+ */
+import Icon from './Icon.astro';
+import { useT } from '../i18n';
+import { FORM } from '../config/site';
+import type { Locale } from '../lib/paths';
+
+interface Props {
+  lang: Locale;
+}
+const { lang } = Astro.props;
+const f = useT(lang).contact.form;
+const messages = JSON.stringify({ ...f.errors, send: f.send, sending: f.sending, subject: f.subject });
+---
+
+<div class="form-card">
+  <form
+    id="contact-form"
+    novalidate
+    data-endpoint={FORM.endpoint}
+    data-key={FORM.accessKey}
+    data-lang={lang}
+    data-messages={messages}
+  >
+    <!-- Honeypot: hidden from people, bots tick it. -->
+    <div class="hp" aria-hidden="true">
+      <label>Leave empty <input type="checkbox" name="botcheck" tabindex="-1" /></label>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="f-name">{f.name}</label>
+        <input id="f-name" name="name" type="text" autocomplete="name" required aria-describedby="f-name-err" />
+        <p class="err" id="f-name-err" data-error="name" hidden>{f.errors.name}</p>
+      </div>
+      <div class="field">
+        <label for="f-email">{f.email}</label>
+        <input id="f-email" name="email" type="email" autocomplete="email" required aria-describedby="f-email-err" />
+        <p class="err" id="f-email-err" data-error="email" hidden>{f.errors.email}</p>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="field">
+        <label for="f-type">{f.type}</label>
+        <select id="f-type" name="projectType">
+          {f.types.map((option) => <option>{option}</option>)}
+        </select>
+      </div>
+      <div class="field">
+        <label for="f-budget">{f.budget}</label>
+        <select id="f-budget" name="budget">
+          {f.budgets.map((option) => <option>{option}</option>)}
+        </select>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="f-msg">{f.message}</label>
+      <textarea id="f-msg" name="message" rows="5" required placeholder={f.messagePlaceholder} aria-describedby="f-msg-err"></textarea>
+      <p class="err" id="f-msg-err" data-error="message" hidden>{f.errors.message}</p>
+    </div>
+
+    <button class="btn btn-primary submit" type="submit">{f.send}</button>
+    <p class="status" id="form-status" role="alert" aria-live="assertive"></p>
+    <p class="privacy">{f.privacy}</p>
+  </form>
+
+  <div class="done" id="form-done" role="status" aria-live="polite" hidden>
+    <span class="done-icon"><Icon name="check-circle" size={56} strokeWidth={1.6} /></span>
+    <p class="big">{f.thanks}</p>
+    <p class="muted">{f.thanksSub}</p>
+    <button type="button" class="btn btn-ghost btn-sm" id="form-again">{f.again}</button>
+  </div>
+</div>
+
+<style>
+  .form-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    align-self: start;
+  }
+  form {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+  }
+  form[hidden],
+  .err[hidden] {
+    display: none;
+  }
+  .row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 18px;
+  }
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  label {
+    font-size: 14px;
+    font-weight: 600;
+  }
+  input,
+  select,
+  textarea {
+    min-height: 48px;
+    padding: 0 14px;
+    border-radius: 10px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+    color: var(--text);
+    font-size: 15px;
+  }
+  textarea {
+    padding: 12px 14px;
+    resize: vertical;
+    min-height: 130px;
+  }
+  [aria-invalid='true'] {
+    border-color: var(--danger);
+  }
+  .err,
+  .status {
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--danger);
+  }
+  .status:empty {
+    display: none;
+  }
+  .submit[disabled] {
+    opacity: 0.7;
+    cursor: progress;
+  }
+  .privacy {
+    font-size: 13px;
+    color: var(--muted);
+  }
+  .hp {
+    position: absolute;
+    left: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  .done {
+    min-height: 360px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 14px;
+    text-align: center;
+  }
+  .done[hidden] {
+    display: none;
+  }
+  .done-icon {
+    color: var(--ink);
+  }
+  .big {
+    font-size: 20px;
+    font-weight: 600;
+  }
+</style>
+
+<script>
+  import { buildPayload, submitContact, validateContact, type ContactField } from '../lib/contact';
+
+  const form = document.getElementById('contact-form') as HTMLFormElement | null;
+  const done = document.getElementById('form-done');
+  const status = document.getElementById('form-status');
+
+  if (form && done && status) {
+    const msg = JSON.parse(form.dataset.messages ?? '{}') as Record<string, string>;
+    const submitBtn = form.querySelector<HTMLButtonElement>('button[type="submit"]');
+    const fieldIds: Record<ContactField, string> = { name: 'f-name', email: 'f-email', message: 'f-msg' };
+
+    const showErrors = (errors: ContactField[]) => {
+      (Object.keys(fieldIds) as ContactField[]).forEach((field) => {
+        const input = document.getElementById(fieldIds[field]);
+        const hint = form.querySelector<HTMLElement>(`[data-error="${field}"]`);
+        const bad = errors.includes(field);
+        input?.setAttribute('aria-invalid', String(bad));
+        if (hint) hint.hidden = !bad;
+      });
+      if (errors.length) document.getElementById(fieldIds[errors[0]])?.focus();
+    };
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      status.textContent = '';
+      const data = new FormData(form);
+      const input = {
+        name: String(data.get('name') ?? ''),
+        email: String(data.get('email') ?? ''),
+        projectType: String(data.get('projectType') ?? ''),
+        budget: String(data.get('budget') ?? ''),
+        message: String(data.get('message') ?? ''),
+        botcheck: data.get('botcheck') !== null,
+      };
+
+      const check = validateContact(input);
+      showErrors(check.errors);
+      if (!check.valid) return;
+
+      const payload = buildPayload(input, {
+        accessKey: form.dataset.key ?? '',
+        subject: msg.subject,
+        lang: form.dataset.lang ?? 'en',
+        page: location.href,
+      });
+
+      if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.textContent = msg.sending;
+      }
+      const result = await submitContact(form.dataset.endpoint ?? '', payload);
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.textContent = msg.send;
+      }
+
+      if (result.ok) {
+        form.reset();
+        form.hidden = true;
+        done.hidden = false;
+      } else {
+        status.textContent = result.reason === 'no-key' ? msg.noKey : msg.failed;
+      }
+    });
+
+    document.getElementById('form-again')?.addEventListener('click', () => {
+      done.hidden = true;
+      form.hidden = false;
+      document.getElementById('f-name')?.focus();
+    });
+  }
+</script>

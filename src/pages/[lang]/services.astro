@@ -1,0 +1,106 @@
+---
+/** Services page: one block per service with deliverables. Docs: docs/features/services.md */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import Icon from '../../components/Icon.astro';
+import { useT } from '../../i18n';
+import { localeStaticPaths, type Locale } from '../../lib/paths';
+
+export const getStaticPaths = localeStaticPaths;
+
+const lang = Astro.params.lang as Locale;
+const t = useT(lang);
+---
+
+<BaseLayout lang={lang} title={t.meta.servicesTitle} description={t.meta.servicesDescription}>
+  <PageHeader title={t.services.pageTitle} sub={t.services.pageSub} />
+  <section class="container list">
+    {
+      t.services.items.map((s) => (
+        <article class="card service" id={s.key} data-service={s.key}>
+          <div class="intro">
+            <h2>{s.title}</h2>
+            <p class="muted">{s.text}</p>
+            <p class="tags">{s.tags}</p>
+          </div>
+          <div>
+            <h3 class="label">{t.services.deliverLabel}</h3>
+            <ul class="deliver">
+              {s.deliver.map((d) => (
+                <li>
+                  <Icon name="check" size={20} strokeWidth={2} />
+                  <span>{d}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </article>
+      ))
+    }
+  </section>
+</BaseLayout>
+
+<style>
+  .list {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding-bottom: 96px;
+  }
+  .service {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 32px;
+    padding: 36px;
+    border-radius: 20px;
+    scroll-margin-top: 24px;
+  }
+  .intro {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  h2 {
+    font-size: 28px;
+    letter-spacing: -0.01em;
+  }
+  .intro p {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .tags {
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .label {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-2);
+    margin-bottom: 12px;
+  }
+  .deliver {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .deliver li {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    font-size: 16px;
+    line-height: 1.5;
+  }
+  .deliver :global(svg) {
+    color: var(--ink);
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  @media (max-width: 640px) {
+    .service {
+      padding: 24px;
+    }
+  }
+</style>

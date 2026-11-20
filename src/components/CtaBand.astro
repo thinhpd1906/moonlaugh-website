@@ -1,0 +1,58 @@
+---
+/** "Have a project in mind?" banner shown at the end of every page except Contact. */
+import { useT } from '../i18n';
+import { localePath, type Locale } from '../lib/paths';
+
+interface Props {
+  lang: Locale;
+}
+const { lang } = Astro.props;
+const t = useT(lang);
+---
+
+<section class="container cta-wrap">
+  <div class="cta">
+    <div>
+      <h2>{t.cta.title}</h2>
+      <p>{t.cta.sub}</p>
+    </div>
+    <a class="btn btn-primary" href={localePath(lang, 'contact')} data-cta="band">{t.cta.btn}</a>
+  </div>
+</section>
+
+<style>
+  .cta-wrap {
+    padding-bottom: 96px;
+  }
+  .cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 48px;
+    border: 1px solid var(--border-2);
+    border-radius: 24px;
+    background: var(--surface);
+  }
+  .cta > div {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 640px;
+  }
+  h2 {
+    font-size: clamp(26px, 3vw, 36px);
+    letter-spacing: -0.02em;
+  }
+  p {
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--text-2);
+  }
+  @media (max-width: 640px) {
+    .cta {
+      padding: 28px;
+    }
+  }
+</style>

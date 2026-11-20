@@ -1,0 +1,60 @@
+---
+/** Card linking to a team member's profile page. Docs: docs/features/team-profiles.md */
+import Avatar from './Avatar.astro';
+import Icon from './Icon.astro';
+import { useT } from '../i18n';
+import { localePath, type Locale } from '../lib/paths';
+import type { TeamMember } from '../data/team';
+
+interface Props {
+  lang: Locale;
+  member: TeamMember;
+}
+const { lang, member } = Astro.props;
+const t = useT(lang);
+const copy = member.copy[lang];
+---
+
+<a class="card card-link member" href={localePath(lang, 'team', member.slug)} data-member={member.slug}>
+  <Avatar member={member} size={72} />
+  <div class="who">
+    <h3>{copy.name}</h3>
+    <p class="role">{copy.role}</p>
+  </div>
+  <p class="bio">{copy.bio}</p>
+  <span class="view">{t.team.view}<Icon name="arrow-right" size={18} strokeWidth={2} /></span>
+</a>
+
+<style>
+  .member {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    color: var(--text);
+  }
+  .who {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  h3 {
+    font-size: 19px;
+  }
+  .role,
+  .view {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--ink);
+  }
+  .bio {
+    flex-grow: 1;
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-2);
+  }
+  .view {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+</style>

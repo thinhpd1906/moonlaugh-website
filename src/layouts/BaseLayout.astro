@@ -1,0 +1,76 @@
+---
+/**
+ * Shell for every page: <head> metadata, theme bootstrapping, header, footer,
+ * optional call-to-action band and the floating chat button.
+ * Docs: docs/ARCHITECTURE.md
+ */
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import ChatWidget from '../components/ChatWidget.astro';
+import CtaBand from '../components/CtaBand.astro';
+import { useT } from '../i18n';
+import { LOCALES, switchLocalePath, type Locale } from '../lib/paths';
+import { SITE } from '../config/site';
+
+interface Props {
+  lang: Locale;
+  title: string;
+  description: string;
+  /** Show the "Have a project in mind?" band before the footer. */
+  showCta?: boolean;
+}
+const { lang, title, description, showCta = true } = Astro.props;
+const t = useT(lang);
+const site = Astro.site ?? new URL(SITE.url);
+const canonical = new URL(Astro.url.pathname, site).href;
+---
+
+<!doctype html>
+<html lang={t.meta.htmlLang} data-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    {LOCALES.map((code) => <link rel="alternate" hreflang={code} href={new URL(switchLocalePath(Astro.url.pathname, code), site).href} />)}
+    <link rel="alternate" hreflang="x-default" href={new URL(switchLocalePath(Astro.url.pathname, 'en'), site).href} />
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Moonlaugh" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:locale" content={lang === 'vi' ? 'vi_VN' : 'en_US'} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="theme-color" content="#0b1020" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap"
+    />
+    <!-- Theme: saved choice, else the device setting. Runs before paint to avoid a flash. -->
+    <script is:inline>
+      (function () {
+        var theme = 'dark';
+        try {
+          var saved = localStorage.getItem('ml-theme');
+          if (saved === 'light' || saved === 'dark') theme = saved;
+          else if (window.matchMedia('(prefers-color-scheme: light)').matches) theme = 'light';
+        } catch (e) {}
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
+  </head>
+  <body>
+    <a class="skip-link" href="#main">{t.common.skip}</a>
+    <Header lang={lang} />
+    <main id="main">
+      <slot />
+    </main>
+    {showCta && <CtaBand lang={lang} />}
+    <Footer lang={lang} />
+    <ChatWidget lang={lang} />
+  </body>
+</html>

@@ -1,0 +1,122 @@
+---
+/** How we work: the six-step process and engagement models. Docs: docs/features/process.md */
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PageHeader from '../../components/PageHeader.astro';
+import { useT } from '../../i18n';
+import { localeStaticPaths, type Locale } from '../../lib/paths';
+
+export const getStaticPaths = localeStaticPaths;
+
+const lang = Astro.params.lang as Locale;
+const t = useT(lang);
+---
+
+<BaseLayout lang={lang} title={t.meta.processTitle} description={t.meta.processDescription}>
+  <PageHeader title={t.process.pageTitle} sub={t.process.pageSub} />
+
+  <section class="container steps-wrap">
+    <ol class="steps">
+      {
+        t.process.steps.map((step, i) => (
+          <li class="card step" data-step={i + 1}>
+            <div class="name">
+              <span class="n">{String(i + 1).padStart(2, '0')}</span>
+              <h2>{step.title}</h2>
+            </div>
+            <p class="muted">{step.text}</p>
+            <div class="get">
+              <p class="label">{t.process.getLabel}</p>
+              <p>{step.get}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section class="band">
+    <div class="container section">
+      <h2 class="h2 models-title">{t.process.modelsTitle}</h2>
+      <div class="models">
+        {
+          t.process.models.map((m) => (
+            <div class="card">
+              <h3>{m.title}</h3>
+              <p class="muted">{m.text}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+  <div class="spacer"></div>
+</BaseLayout>
+
+<style>
+  .steps-wrap {
+    padding-bottom: 72px;
+  }
+  .steps {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .step {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 24px;
+    align-items: start;
+    padding: 32px;
+    border-radius: 20px;
+  }
+  .name {
+    display: flex;
+    align-items: baseline;
+    gap: 18px;
+  }
+  .n {
+    font-size: 40px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+  }
+  .step h2 {
+    font-size: 24px;
+  }
+  .step p {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+  .get {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .label {
+    font-size: 13px !important;
+    font-weight: 600;
+    color: var(--text-2);
+  }
+  .models-title {
+    margin-bottom: 40px;
+  }
+  .models {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  .models h3 {
+    font-size: 20px;
+    margin-bottom: 10px;
+  }
+  .models p {
+    font-size: 15px;
+    line-height: 1.6;
+  }
+  .spacer {
+    height: 96px;
+  }
+</style>

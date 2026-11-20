@@ -1,0 +1,119 @@
+---
+/** Site footer: brand line, page links, social and community links. Docs: docs/features/navigation.md */
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { useT } from '../i18n';
+import { LINKS } from '../config/site';
+import { localePath, type Locale } from '../lib/paths';
+
+interface Props {
+  lang: Locale;
+}
+const { lang } = Astro.props;
+const t = useT(lang);
+const social = [
+  { label: 'Facebook', href: LINKS.facebook, id: 'facebook' },
+  { label: 'TikTok', href: LINKS.tiktok, id: 'tiktok' },
+  { label: t.footer.community, href: LINKS.community, id: 'community' },
+];
+---
+
+<footer class="site-footer">
+  <div class="container row">
+    <div class="brand">
+      <Logo size={26} />
+      <span class="name">Moonlaugh</span>
+      <span class="tag">· {t.footer.tag}</span>
+    </div>
+
+    <nav aria-label={t.common.footerNav}>
+      <ul class="links">
+        <li><a href={localePath(lang, 'services')}>{t.nav.services}</a></li>
+        <li><a href={localePath(lang, 'process')}>{t.nav.process}</a></li>
+        <li><a href={localePath(lang, 'team')}>{t.nav.team}</a></li>
+        <li><a href={localePath(lang, 'contact')}>{t.nav.contact}</a></li>
+      </ul>
+    </nav>
+
+    <nav aria-label={t.common.social}>
+      <ul class="social">
+        {
+          social.map((s) => (
+            <li>
+              <a class="social-link" href={s.href} target="_blank" rel="noopener noreferrer" data-social={s.id}>
+                {s.label}
+                <Icon name="arrow-up-right" size={16} strokeWidth={2} />
+                <span class="visually-hidden">{t.common.opensNewTab}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <p class="rights">{t.footer.rights}</p>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    border-top: 1px solid var(--line);
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 20px;
+    padding-block: 40px 112px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .name {
+    font-weight: 700;
+  }
+  .tag,
+  .rights {
+    font-size: 14px;
+    color: var(--muted);
+  }
+  .links,
+  .social {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px 24px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .links a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: 14px;
+    color: var(--text-2);
+  }
+  .links a:hover {
+    color: var(--text);
+  }
+  .social {
+    gap: 10px;
+  }
+  .social-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    padding: 0 16px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 600;
+  }
+  .social-link:hover {
+    background: var(--surface);
+  }
+</style>

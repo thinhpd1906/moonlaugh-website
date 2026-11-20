@@ -1,0 +1,12 @@
+---
+/** Moonlaugh mark: a smiling crescent with a small star. Decorative; the wordmark carries the name. */
+interface Props {
+  size?: number;
+}
+const { size = 34 } = Astro.props;
+---
+
+<svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+  <path d="M4 11 A8 8 0 0 0 20 11 A10 10 0 0 1 4 11 Z" fill="var(--accent)"></path>
+  <circle cx="17.5" cy="5" r="1.2" fill="var(--accent)"></circle>
+</svg>

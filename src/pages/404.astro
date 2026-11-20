@@ -1,0 +1,43 @@
+---
+/** Not-found page (served by most static hosts for unknown URLs). Bilingual on one page. */
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { useT } from '../i18n';
+import { localePath } from '../lib/paths';
+
+const en = useT('en');
+const vi = useT('vi');
+---
+
+<BaseLayout lang="en" title={en.meta.notFoundTitle} description={en.notFound.text} showCta={false}>
+  <section class="container nf">
+    <p class="code">404</p>
+    <h1 class="h1">{en.notFound.title}</h1>
+    <p class="lead">{en.notFound.text}</p>
+    <p class="lead" lang="vi">{vi.notFound.title}. {vi.notFound.text}</p>
+    <div class="actions">
+      <a class="btn btn-primary" href={localePath('en', 'home')}>{en.notFound.home}</a>
+      <a class="btn btn-ghost" href={localePath('vi', 'home')} lang="vi">{vi.notFound.home}</a>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .nf {
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+    padding-block: 120px;
+  }
+  .code {
+    font-size: 64px;
+    font-weight: 700;
+    color: var(--ink);
+    letter-spacing: -0.03em;
+  }
+  .actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    padding-top: 8px;
+  }
+</style>

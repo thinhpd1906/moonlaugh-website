@@ -1,0 +1,220 @@
+---
+/**
+ * Site header: logo, main navigation (active tab underlined), theme switch,
+ * language switch and the primary call to action.
+ * Docs: docs/features/navigation.md, docs/features/theme.md, docs/features/i18n-and-routing.md
+ */
+import Logo from './Logo.astro';
+import Icon from './Icon.astro';
+import { useT } from '../i18n';
+import { LOCALES, activeRoute, localePath, switchLocalePath, type Locale, type RouteKey } from '../lib/paths';
+
+interface Props {
+  lang: Locale;
+}
+const { lang } = Astro.props;
+const t = useT(lang);
+const current = activeRoute(Astro.url.pathname);
+const items: RouteKey[] = ['home', 'services', 'process', 'team', 'contact'];
+---
+
+<header class="site-header">
+  <div class="container bar">
+    <a class="brand" href={localePath(lang, 'home')}>
+      <Logo />
+      <span>Moonlaugh</span>
+    </a>
+
+    <nav aria-label={t.common.mainNav}>
+      <ul class="nav-list">
+        {
+          items.map((key) => (
+            <li>
+              <a
+                href={localePath(lang, key)}
+                class:list={['nav-link', { active: current === key }]}
+                aria-current={current === key ? 'page' : undefined}
+                data-nav={key}
+              >
+                {t.nav[key]}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div class="tools">
+      <button
+        type="button"
+        class="icon-btn"
+        id="theme-toggle"
+        data-label-light={t.common.themeToLight}
+        data-label-dark={t.common.themeToDark}
+        aria-label={t.common.themeToLight}
+      >
+        <span class="when-dark"><Icon name="sun" /></span>
+        <span class="when-light"><Icon name="moon" /></span>
+      </button>
+
+      <div class="lang" role="group" aria-label={t.common.language}>
+        {
+          LOCALES.map((code) => (
+            <a
+              href={switchLocalePath(Astro.url.pathname, code)}
+              hreflang={code}
+              lang={code}
+              class:list={['lang-btn', { on: code === lang }]}
+              aria-current={code === lang ? 'true' : undefined}
+              data-lang-switch={code}
+            >
+              {code.toUpperCase()}
+            </a>
+          ))
+        }
+      </div>
+
+      <a class="btn btn-primary btn-sm" href={localePath(lang, 'contact')}>{t.nav.cta}</a>
+    </div>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    border-bottom: 1px solid var(--line);
+  }
+  .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding-block: 18px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 22px;
+    letter-spacing: -0.02em;
+    min-height: 44px;
+  }
+  .nav-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 28px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .nav-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-2);
+    border-bottom: 2px solid transparent;
+  }
+  .nav-link:hover {
+    color: var(--text);
+  }
+  .nav-link.active {
+    color: var(--text);
+    border-bottom-color: var(--accent);
+  }
+  .tools {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .icon-btn {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .icon-btn:hover {
+    background: var(--surface);
+  }
+  :global([data-theme='light']) .when-dark,
+  :global([data-theme='dark']) .when-light {
+    display: none;
+  }
+  .lang {
+    display: flex;
+    gap: 4px;
+    padding: 4px;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+  }
+  .lang-btn {
+    display: inline-flex;
+    align-items: center;
+    min-height: 34px;
+    padding: 0 14px;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-2);
+  }
+  .lang-btn.on {
+    background: var(--accent);
+    color: var(--on-accent);
+  }
+  /* Phones: tabs stay on one line and scroll sideways instead of wrapping. */
+  @media (max-width: 720px) {
+    nav {
+      order: 3;
+      width: 100%;
+    }
+    .nav-list {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      gap: 22px;
+      scrollbar-width: none;
+    }
+    .nav-link {
+      white-space: nowrap;
+    }
+  }
+</style>
+
+<script>
+  // Theme switch: flips <html data-theme> and remembers the choice.
+  const btn = document.getElementById('theme-toggle');
+  const label = () => {
+    if (!btn) return;
+    const isLight = document.documentElement.dataset.theme === 'light';
+    btn.setAttribute('aria-label', (isLight ? btn.dataset.labelDark : btn.dataset.labelLight) ?? '');
+  };
+  label();
+  btn?.addEventListener('click', () => {
+    const next = document.documentElement.dataset.theme === 'light' ? 'dark' : 'light';
+    document.documentElement.dataset.theme = next;
+    try {
+      localStorage.setItem('ml-theme', next);
+    } catch {
+      /* storage blocked: theme still switches for this page */
+    }
+    label();
+  });
+
+  // Remember the language the visitor picked, so "/" sends them back to it.
+  document.querySelectorAll<HTMLAnchorElement>('[data-lang-switch]').forEach((a) => {
+    a.addEventListener('click', () => {
+      try {
+        localStorage.setItem('ml-lang', a.dataset.langSwitch ?? 'en');
+      } catch {
+        /* ignore */
+      }
+    });
+  });
+</script>

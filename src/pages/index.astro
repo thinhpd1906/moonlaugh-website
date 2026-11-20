@@ -1,0 +1,34 @@
+---
+/**
+ * Root URL "/". Sends visitors to /en/ or /vi/: their last choice if saved,
+ * otherwise Vietnamese for Vietnamese-language browsers, else English.
+ * Docs: docs/features/i18n-and-routing.md
+ */
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Moonlaugh</title>
+    <meta name="robots" content="noindex" />
+    <link rel="canonical" href="https://moonlaugh.com/en/" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script is:inline>
+      (function () {
+        var lang = 'en';
+        try {
+          var saved = localStorage.getItem('ml-lang');
+          if (saved === 'en' || saved === 'vi') lang = saved;
+          else if ((navigator.language || '').toLowerCase().indexOf('vi') === 0) lang = 'vi';
+        } catch (e) {}
+        location.replace('/' + lang + '/');
+      })();
+    </script>
+    <noscript><meta http-equiv="refresh" content="0; url=/en/" /></noscript>
+  </head>
+  <body style="background:#0b1020;color:#eef1f8;font-family:system-ui,sans-serif">
+    <p style="padding:24px"><a href="/en/" style="color:#f5c451">English</a> · <a href="/vi/" style="color:#f5c451">Tiếng Việt</a></p>
+  </body>
+</html>
